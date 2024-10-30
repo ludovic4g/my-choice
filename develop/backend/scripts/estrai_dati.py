@@ -27,11 +27,11 @@ def estrai_informazioni(html_content):
             elif "Orari" in chiave:
                 dati['Orari'] = valore
             elif "I.V.G. FARMACOLOGICA" in chiave:
-                dati['I.V.G. FARMACOLOGICA'] = valore
+                dati['ivg_farm'] = valore
             elif "I.V.G. CHIRURGICA" in chiave:
-                dati['I.V.G. CHIRURGICA'] = valore
+                dati['ivg_chirurgica'] = valore
             elif "I.T.G." in chiave:
-                dati['I.T.G.'] = valore
+                dati['itg'] = valore
             elif "Annotazioni" in chiave:
                 dati['Annotazioni'] = valore
 
@@ -57,7 +57,7 @@ def processa_file_html(file_html_path, output_json_path):
 
 # Percorso al file HTML e al file di output JSON
 file_html_path = 'develop/backend/assets/laiga_dataset.html'
-output_json_path = 'dati_ospedali.json'
+output_json_path = 'dati_centri.json'
 
 # Esecuzione della funzione
 processa_file_html(file_html_path, output_json_path)
