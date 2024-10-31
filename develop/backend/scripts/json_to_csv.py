@@ -16,8 +16,8 @@ def convert_json_to_csv(json_file_path, csv_file_path):
         writer.writerows(dati)
 
 # Percorso al file JSON di input e al file CSV di output
-json_file_path = 'develop/backend/assets/dati_centri.json'
-csv_file_path = 'develop/backend/assets/dati_centri.csv'
+json_file_path = 'develop/backend/assets/dati_centri_updated.json'
+csv_file_path = 'develop/backend/assets/dati_centri_updated.csv'
 
 # Esegui la conversione
 convert_json_to_csv(json_file_path, csv_file_path)
