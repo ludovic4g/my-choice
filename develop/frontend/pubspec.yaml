@@ -1,0 +1,32 @@
+name: frontend
+description: "A new Flutter project."
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  cupertino_icons: ^1.0.8
+
+  # Versioni compatibili per la mappa e i popup
+  flutter_map_marker_popup: ^5.1.0
+  latlong2: ^0.8.1
+  google_maps_flutter: ^2.2.0
+  http: ^0.13.3
+  flutter_dotenv: ^5.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/marker.png
+    - assets/config.env
