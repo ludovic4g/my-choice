@@ -6,12 +6,20 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'models/location.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Carica le variabili d'ambiente dal file .env
   await dotenv.load(fileName: 'assets/config.env');
+
+  // Inizializza Supabase
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+  );
 
   // Imposta la modalità a schermo intero per rimuovere le barre di sistema
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -42,8 +50,7 @@ class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
   BitmapDescriptor? customMarkerIcon;
   final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
-  final String address = "Piazza del Colosseo, 00184 Roma, Italia"; // Indirizzo da geocodificare
-  LatLng? _center; // Posizione centrale basata sull'indirizzo
+  LatLng? _center; // Posizione centrale basata sulla prima locazione
   Marker? _selectedMarker; // Marker selezionato
   bool _isInfoWindowVisible = false; // Visibilità della finestra informativa
   Offset _popupPosition = Offset(0, 0); // Posizione del popup personalizzato
@@ -53,11 +60,20 @@ class _MapScreenState extends State<MapScreen> {
   final double _maxZoom = 18.0;
   double _currentZoom = 6.0; // Zoom iniziale
 
+  // Lista delle locazioni recuperate da Supabase
+  List<LocationModel> _locations = [];
+
+  // Lista dei marker
+  final Set<Marker> _markers = {};
+
+  // Variabile per tenere traccia dei dati da mostrare nel popup
+  LocationModel? _currentInfoWindowData;
+
   @override
   void initState() {
     super.initState();
     _loadCustomMarkerIcon();
-    // La chiamata a _getCoordinatesFromAddress verrà effettuata dopo la creazione della mappa
+    // La chiamata a _fetchLocationsFromSupabase verrà effettuata dopo la creazione della mappa
   }
 
   // Carica l'icona personalizzata per il marker
@@ -69,8 +85,52 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {});
   }
 
+  // Recupera le locazioni da Supabase
+  Future<void> _fetchLocationsFromSupabase() async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase
+        .from('locations') // Sostituisci con il nome della tua tabella
+        .select()
+        .execute();
+
+    if (response.error == null) { // Utilizza 'error' per verificare la presenza di errori
+      final data = response.data as List<dynamic>;
+      setState(() {
+        _locations = data.map((item) => LocationModel.fromMap(item)).toList();
+      });
+      // Dopo aver recuperato le locazioni, geocodificale
+      await _geocodeAllLocations();
+    } else {
+      print('Errore nel recupero delle locazioni: ${response.error?.message}');
+    }
+  }
+
+  // Geocodifica tutte le locazioni e imposta la posizione centrale
+  Future<void> _geocodeAllLocations() async {
+    for (var location in _locations) {
+      String fullAddress = "${location.indirizzo}, ${location.cap}, ${location.citta}";
+      LatLng? latLng = await _getCoordinatesFromAddress(fullAddress);
+      if (latLng != null) {
+        _addMarker(location, latLng);
+      }
+    }
+
+    // Imposta la posizione centrale sulla prima locazione, se disponibile
+    if (_locations.isNotEmpty) {
+      String firstAddress = "${_locations[0].indirizzo}, ${_locations[0].cap}, ${_locations[0].citta}";
+      LatLng? firstLatLng = await _getCoordinatesFromAddress(firstAddress);
+      if (firstLatLng != null) {
+        setState(() {
+          _center = firstLatLng;
+          _currentZoom = 12.0; // Zoom più dettagliato
+        });
+        mapController.animateCamera(CameraUpdate.newLatLngZoom(_center!, _currentZoom));
+      }
+    }
+  }
+
   // Ottiene le coordinate dall'indirizzo usando l'API di Geocoding di Google
-  Future<void> _getCoordinatesFromAddress(String address) async {
+  Future<LatLng?> _getCoordinatesFromAddress(String address) async {
     final String url =
         "https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$apiKey";
     final response = await http.get(Uri.parse(url));
@@ -81,17 +141,31 @@ class _MapScreenState extends State<MapScreen> {
         final location = data['results'][0]['geometry']['location'];
         final lat = location['lat'];
         final lng = location['lng'];
-        setState(() {
-          _center = LatLng(lat, lng);
-        });
-        // Animare la camera dopo aver impostato la posizione centrale
-        mapController.animateCamera(CameraUpdate.newLatLng(_center!));
+        return LatLng(lat, lng);
       } else {
-        print("Errore nel Geocoding: ${data['status']}");
+        print("Errore nel Geocoding: ${data['status']} per l'indirizzo: $address");
+        return null;
       }
     } else {
-      print("Errore nella richiesta HTTP: ${response.statusCode}");
+      print("Errore nella richiesta HTTP: ${response.statusCode} per l'indirizzo: $address");
+      return null;
     }
+  }
+
+  // Aggiunge un marker alla mappa
+  void _addMarker(LocationModel location, LatLng position) {
+    final marker = Marker(
+      markerId: MarkerId(location.id),
+      position: position,
+      icon: customMarkerIcon ?? BitmapDescriptor.defaultMarker,
+      onTap: () {
+        _showCustomInfoWindow(location, position);
+      },
+    );
+
+    setState(() {
+      _markers.add(marker);
+    });
   }
 
   // Imposta lo stile della mappa
@@ -184,8 +258,8 @@ class _MapScreenState extends State<MapScreen> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     mapController.setMapStyle(mapStyle);
-    // Dopo la creazione della mappa, ottenere le coordinate dall'indirizzo
-    _getCoordinatesFromAddress(address);
+    // Recupera le locazioni da Supabase dopo la creazione della mappa
+    _fetchLocationsFromSupabase();
   }
 
   // Funzione per zoom in
@@ -202,7 +276,7 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  // Funzione per centrare la mappa sull'indirizzo
+  // Funzione per centrare la mappa sull'indirizzo di default
   void _centerMap() {
     if (_center != null) {
       mapController.animateCamera(CameraUpdate.newLatLng(_center!));
@@ -210,9 +284,9 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   // Funzione per mostrare il custom info window
-  Future<void> _showCustomInfoWindow(Marker marker) async {
+  Future<void> _showCustomInfoWindow(LocationModel location, LatLng position) async {
     // Ottieni le coordinate dello schermo del marker
-    ScreenCoordinate screenCoordinate = await mapController.getScreenCoordinate(marker.position);
+    ScreenCoordinate screenCoordinate = await mapController.getScreenCoordinate(position);
 
     // Converti ScreenCoordinate in posizioni relative allo schermo
     double left = screenCoordinate.x.toDouble();
@@ -233,10 +307,15 @@ class _MapScreenState extends State<MapScreen> {
     if (popupTop + 100 > screenHeight) popupTop = screenHeight - 110;
 
     setState(() {
-      _selectedMarker = marker;
+      _selectedMarker = Marker(
+        markerId: MarkerId(location.id),
+        position: position,
+        icon: customMarkerIcon ?? BitmapDescriptor.defaultMarker,
+      );
       _isInfoWindowVisible = true;
       // Usa variabili per la posizione del popup
       _popupPosition = Offset(popupLeft, popupTop);
+      _currentInfoWindowData = location;
     });
   }
 
@@ -245,6 +324,7 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       _selectedMarker = null;
       _isInfoWindowVisible = false;
+      _currentInfoWindowData = null;
     });
   }
 
@@ -268,21 +348,7 @@ class _MapScreenState extends State<MapScreen> {
               target: _center ?? LatLng(41.9028, 12.4964), // Posizione di default a Roma
               zoom: _currentZoom,
             ),
-            markers: {
-              if (_center != null && customMarkerIcon != null)
-                Marker(
-                  markerId: MarkerId("Marker"),
-                  position: _center!,
-                  icon: customMarkerIcon!,
-                  onTap: () {
-                    _showCustomInfoWindow(Marker(
-                      markerId: MarkerId("Marker"),
-                      position: _center!,
-                      icon: customMarkerIcon!,
-                    ));
-                  },
-                ),
-            },
+            markers: _markers,
             mapToolbarEnabled: false, // Disabilita la toolbar di Google Maps
             zoomControlsEnabled: false, // Disabilita i controlli di zoom di default
             myLocationButtonEnabled: false, // Disabilita il pulsante di localizzazione di default
@@ -298,7 +364,7 @@ class _MapScreenState extends State<MapScreen> {
             },
           ),
           // Popup personalizzato
-          if (_isInfoWindowVisible && _selectedMarker != null)
+          if (_isInfoWindowVisible && _currentInfoWindowData != null)
             Positioned(
               left: _popupPosition.dx,
               top: _popupPosition.dy,
@@ -320,42 +386,92 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     ],
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        address,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                  child: SingleChildScrollView( // Aggiunto per evitare overflow
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _currentInfoWindowData!.nome,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        "Il Colosseo è un'icona di Roma.",
-                        style: TextStyle(
-                          fontSize: 12,
+                        SizedBox(height: 5),
+                        Text(
+                          "Indirizzo: ${_currentInfoWindowData!.indirizzo}, ${_currentInfoWindowData!.cap}, ${_currentInfoWindowData!.citta}",
+                          style: TextStyle(
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 5),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Azione da eseguire quando si preme il pulsante
-                          print("Pulsante Info Window premuto");
-                        },
-                        child: Text('Dettagli'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue, // Colore del pulsante
-                          foregroundColor: Colors.white, // Colore del testo
-                          minimumSize: Size(80, 30), // Dimensioni minime
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
+                        SizedBox(height: 5),
+                        Text(
+                          "Numero: ${_currentInfoWindowData!.numero}",
+                          style: TextStyle(
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          "Orari: ${_currentInfoWindowData!.orari}",
+                          style: TextStyle(
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          "IVG Farm: ${_currentInfoWindowData!.ivgFarm}",
+                          style: TextStyle(
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          "IVG Chirurgica: ${_currentInfoWindowData!.ivgChirurgica}",
+                          style: TextStyle(
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          "ITG: ${_currentInfoWindowData!.itg}",
+                          style: TextStyle(
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          "Annotazioni: ${_currentInfoWindowData!.annotazioni}",
+                          style: TextStyle(
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 5),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Azione da eseguire quando si preme il pulsante
+                            print("Pulsante Info Window premuto per ${_currentInfoWindowData!.nome}");
+                          },
+                          child: Text('Dettagli'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Colore del pulsante
+                            foregroundColor: Colors.white, // Colore del testo
+                            minimumSize: Size(80, 30), // Dimensioni minime
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -367,7 +483,7 @@ class _MapScreenState extends State<MapScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Pulsante per centrare la mappa sull'indirizzo
+                // Pulsante per centrare la mappa sull'indirizzo di default
                 FloatingActionButton(
                   mini: true,
                   onPressed: _centerMap,
