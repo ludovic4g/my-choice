@@ -2,12 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'mappe.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Carica le variabili d'ambiente
+  // Carica le variabili d’ambiente dal file .env
   await dotenv.load(fileName: 'assets/config.env');
 
   // Imposta la modalità a schermo intero
@@ -17,15 +18,38 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
+  Future<void> _initializeSupabase() async {
+    // Inizializza Supabase
+    await Supabase.initialize(
+      url: dotenv.env['SUPABASE_URL'] ?? '',
+      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mappa Italia',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: SplashScreen(), // Imposta SplashScreen come pagina iniziale
-      debugShowCheckedModeBanner: false,
+    return FutureBuilder(
+      future: _initializeSupabase(),
+      builder: (context, snapshot) {
+        // Mostra uno splash temporaneo finché Supabase non è inizializzato
+        if (snapshot.connectionState != ConnectionState.done) {
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+
+        // Dopo l'inizializzazione di Supabase, mostra la SplashScreen
+        return MaterialApp(
+          title: 'Mappa Italia',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          home: SplashScreen(),
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }

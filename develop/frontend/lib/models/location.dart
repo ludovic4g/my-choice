@@ -1,11 +1,10 @@
-// models/location.dart
 class LocationModel {
-  final String id;
+  final int id;
   final String nome;
   final String indirizzo;
-  final String cap;
-  final String citta; // Rinominato da 'città' a 'citta'
-  final String numero;
+  final dynamic cap; // Può essere String o int
+  final String citta;
+  final dynamic numero; // Può essere String o int
   final String orari;
   final String ivgFarm;
   final String ivgChirurgica;
@@ -28,12 +27,12 @@ class LocationModel {
 
   factory LocationModel.fromMap(Map<String, dynamic> map) {
     return LocationModel(
-      id: map['id'] ?? '',
+      id: map['id'],
       nome: map['Nome'] ?? '',
       indirizzo: map['Indirizzo'] ?? '',
-      cap: map['CAP'] ?? '',
-      citta: map['Città'] ?? '', // Mappatura del campo 'Città'
-      numero: map['Numero'] ?? '',
+      cap: map['CAP'],
+      citta: map['Citta'] ?? '',
+      numero: map['Numero'],
       orari: map['Orari'] ?? '',
       ivgFarm: map['ivg_farm'] ?? '',
       ivgChirurgica: map['ivg_chirurgica'] ?? '',

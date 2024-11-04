@@ -1,10 +1,13 @@
-// mappa.dart
+// mappe.dart
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'models/location.dart';
+import 'models/farmacia_model.dart';
 
 class MapScreen extends StatefulWidget {
   @override
@@ -14,10 +17,9 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
   BitmapDescriptor? customMarkerIcon;
+  BitmapDescriptor? farmaciaMarkerIcon;
   final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
-  final String address = "Piazza del Colosseo, 00184 Roma, Italia"; 
   LatLng? _center;
-  Marker? _selectedMarker;
   bool _isInfoWindowVisible = false;
   Offset _popupPosition = Offset(0, 0);
 
@@ -25,10 +27,17 @@ class _MapScreenState extends State<MapScreen> {
   final double _maxZoom = 18.0;
   double _currentZoom = 6.0;
 
+  List<LocationModel> _locations = [];
+  List<FarmaciaModel> _farmacie = [];
+  final Set<Marker> _markers = {};
+  dynamic _currentInfoWindowData;
+
   @override
   void initState() {
     super.initState();
     _loadCustomMarkerIcon();
+    _fetchLocationsFromSupabase();
+    _fetchFarmacieFromSupabase();
   }
 
   Future<void> _loadCustomMarkerIcon() async {
@@ -36,10 +45,128 @@ class _MapScreenState extends State<MapScreen> {
       ImageConfiguration(size: Size(48, 48)),
       'assets/marker.png',
     );
+    farmaciaMarkerIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(size: Size(48, 48)),
+      'assets/farmacie.png',
+    );
     setState(() {});
   }
 
-  Future<void> _getCoordinatesFromAddress(String address) async {
+  Future<void> _fetchLocationsFromSupabase() async {
+    try {
+      print("Tentativo di accesso a Supabase per i centri...");
+
+      final response =
+          await Supabase.instance.client.from('centri').select().execute();
+
+      if (response.data == null || response.status != 200) {
+        print("Errore nella connessione a Supabase o tabella 'centri' non trovata.");
+        print("Stato della risposta: ${response.status}");
+        return;
+      }
+
+      print("Accesso effettuato a Supabase per i centri");
+      print("Dati recuperati dal database: ${response.data}");
+
+      final data = response.data as List<dynamic>;
+      setState(() {
+        _locations = data.map((item) => LocationModel.fromMap(item)).toList();
+      });
+
+      if (_locations.isEmpty) {
+        print("Nessun dato trovato nella tabella 'centri'");
+      } else {
+        print("Modello _locations: $_locations");
+      }
+
+      await _geocodeAllLocations();
+    } catch (error) {
+      print("Errore nel recupero delle locazioni: $error");
+    }
+  }
+
+  Future<void> _fetchFarmacieFromSupabase() async {
+    try {
+      print("Tentativo di accesso a Supabase per le farmacie...");
+
+      final response =
+          await Supabase.instance.client.from('farmacie').select().execute();
+
+      if (response.data == null || response.status != 200) {
+        print("Errore nella connessione a Supabase o tabella 'farmacie' non trovata.");
+        print("Stato della risposta: ${response.status}");
+        return;
+      }
+
+      print("Accesso effettuato a Supabase per le farmacie");
+      print("Dati recuperati dal database: ${response.data}");
+
+      final data = response.data as List<dynamic>;
+      setState(() {
+        _farmacie = data.map((item) => FarmaciaModel.fromMap(item)).toList();
+      });
+
+      if (_farmacie.isEmpty) {
+        print("Nessun dato trovato nella tabella 'farmacie'");
+      } else {
+        print("Modello _farmacie: $_farmacie");
+      }
+
+      await _geocodeAllFarmacie();
+    } catch (error) {
+      print("Errore nel recupero delle farmacie: $error");
+    }
+  }
+
+  Future<void> _geocodeAllLocations() async {
+    for (var location in _locations) {
+      final fullAddress = "${location.indirizzo}, ${location.cap}, ${location.citta}";
+      print("Geocodifica per l'indirizzo: $fullAddress");
+
+      final coordinates = await _getCoordinatesFromAddress(fullAddress);
+      if (coordinates != null) {
+        print("Coordinate trovate per $fullAddress: ${coordinates.latitude}, ${coordinates.longitude}");
+        setState(() {
+          _markers.add(Marker(
+            markerId: MarkerId('centro_${location.id}'),
+            position: coordinates,
+            icon: customMarkerIcon!,
+            onTap: () {
+              _showCustomInfoWindow(location, coordinates);
+            },
+          ));
+        });
+      } else {
+        print("Impossibile ottenere le coordinate per: $fullAddress");
+      }
+    }
+  }
+
+  Future<void> _geocodeAllFarmacie() async {
+    for (var farmacia in _farmacie) {
+      final fullAddress = "${farmacia.indirizzo}, ${farmacia.comune}";
+      print("Geocodifica per l'indirizzo: $fullAddress");
+
+      final coordinates = await _getCoordinatesFromAddress(fullAddress);
+      if (coordinates != null) {
+        print("Coordinate trovate per $fullAddress: ${coordinates.latitude}, ${coordinates.longitude}");
+        setState(() {
+          _markers.add(Marker(
+            markerId: MarkerId('farmacia_${farmacia.id}'),
+            position: coordinates,
+            icon: farmaciaMarkerIcon!,
+            onTap: () {
+              _showCustomInfoWindow(farmacia, coordinates);
+            },
+          ));
+        });
+      } else {
+        print("Impossibile ottenere le coordinate per: $fullAddress");
+      }
+    }
+  }
+
+  Future<LatLng?> _getCoordinatesFromAddress(String address) async {
     final String url =
         "https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$apiKey";
     final response = await http.get(Uri.parse(url));
@@ -48,19 +175,47 @@ class _MapScreenState extends State<MapScreen> {
       final data = json.decode(response.body);
       if (data['status'] == 'OK') {
         final location = data['results'][0]['geometry']['location'];
-        setState(() {
-          _center = LatLng(location['lat'], location['lng']);
-        });
-        mapController.animateCamera(CameraUpdate.newLatLng(_center!));
+        return LatLng(location['lat'], location['lng']);
       } else {
-        print("Errore nel Geocoding: ${data['status']}");
+        print("Errore nel Geocoding: ${data['status']} per l'indirizzo: $address");
+        return null;
       }
     } else {
-      print("Errore nella richiesta HTTP: ${response.statusCode}");
+      print("Errore nella richiesta HTTP: ${response.statusCode} per l'indirizzo: $address");
+      return null;
     }
   }
 
-  // Stile personalizzato della mappa
+  void _showCustomInfoWindow(dynamic locationData, LatLng position) async {
+        ScreenCoordinate screenCoordinate = await mapController.getScreenCoordinate(position);
+
+    double left = screenCoordinate.x.toDouble();
+    double top = screenCoordinate.y.toDouble();
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    double popupLeft = left - 75;
+    double popupTop = top - 120;
+    if (popupLeft < 10) popupLeft = 10;
+    if (popupTop < 10) popupTop = 10;
+    if (popupLeft + 150 > screenWidth) popupLeft = screenWidth - 160;
+    if (popupTop + 100 > screenHeight) popupTop = screenHeight - 110;
+
+    setState(() {
+      _isInfoWindowVisible = true;
+      _popupPosition = Offset(popupLeft, popupTop);
+      _currentInfoWindowData = locationData;
+    });
+  }
+
+  void _hideCustomInfoWindow() {
+    setState(() {
+      _isInfoWindowVisible = false;
+      _currentInfoWindowData = null;
+    });
+  }
+
+  // Stile della mappa
   final String mapStyle = '''
   [
     {
@@ -119,7 +274,7 @@ class _MapScreenState extends State<MapScreen> {
     {
       "featureType": "road",
       "elementType": "geometry.stroke",
-      "stylers": [
+      "stylers": [        
         { "color": "#EB8686" }
       ]
     },
@@ -150,7 +305,10 @@ class _MapScreenState extends State<MapScreen> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     mapController.setMapStyle(mapStyle);
-    _getCoordinatesFromAddress(address);
+    if (_center != null) {
+      mapController
+          .animateCamera(CameraUpdate.newLatLngZoom(_center!, _currentZoom));
+    }
   }
 
   void _zoomIn() {
@@ -187,22 +345,126 @@ class _MapScreenState extends State<MapScreen> {
           GoogleMap(
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
-              target: _center ?? LatLng(41.9028, 12.4964),
+              target: _center ??
+                  LatLng(41.9028, 12.4964), // Posizione di default a Roma
               zoom: _currentZoom,
             ),
-            markers: {
-              if (_center != null && customMarkerIcon != null)
-                Marker(
-                  markerId: MarkerId("Marker"),
-                  position: _center!,
-                  icon: customMarkerIcon!,
-                ),
-            },
+            markers: _markers,
             mapToolbarEnabled: false,
             zoomControlsEnabled: false,
             myLocationButtonEnabled: false,
             minMaxZoomPreference: MinMaxZoomPreference(_minZoom, _maxZoom),
+            onTap: (LatLng position) {
+              _hideCustomInfoWindow();
+            },
+            onCameraMove: (CameraPosition position) {
+              setState(() {
+                _currentZoom = position.zoom;
+              });
+            },
           ),
+          if (_isInfoWindowVisible && _currentInfoWindowData != null)
+            Positioned(
+              left: _popupPosition.dx,
+              top: _popupPosition.dy,
+              child: GestureDetector(
+                onTap: () {},
+                child: Container(
+                  width: 200,
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _currentInfoWindowData is LocationModel
+                              ? _currentInfoWindowData.nome
+                              : _currentInfoWindowData.descrizione,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          _currentInfoWindowData is LocationModel
+                              ? "Indirizzo: ${_currentInfoWindowData.indirizzo}, ${_currentInfoWindowData.cap}, ${_currentInfoWindowData.citta}"
+                              : "Indirizzo: ${_currentInfoWindowData.indirizzo}, ${_currentInfoWindowData.comune}",
+                          style: TextStyle(fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (_currentInfoWindowData is LocationModel) ...[
+                          SizedBox(height: 5),
+                          Text(
+                            "Numero: ${_currentInfoWindowData.numero}",
+                            style: TextStyle(fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "Orari: ${_currentInfoWindowData.orari}",
+                            style: TextStyle(fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "IVG Farmacologica: ${_currentInfoWindowData.ivgFarm}",
+                            style: TextStyle(fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "IVG Chirurgica: ${_currentInfoWindowData.ivgChirurgica}",
+                            style: TextStyle(fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "ITG: ${_currentInfoWindowData.itg}",
+                            style: TextStyle(fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "Annotazioni: ${_currentInfoWindowData.annotazioni}",
+                            style: TextStyle(fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                        SizedBox(height: 5),
+                        ElevatedButton(
+                          onPressed: () {
+                            print(
+                                "Dettagli per ${_currentInfoWindowData is LocationModel ? _currentInfoWindowData.nome : _currentInfoWindowData.descrizione}");
+                          },
+                          child: Text('Dettagli'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            minimumSize: Size(80, 30),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             bottom: 20,
             right: 10,
@@ -240,3 +502,5 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 }
+
+
