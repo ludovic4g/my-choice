@@ -31,3 +31,8 @@ flutter:
     - assets/marker.png
     - assets/config.env
     - assets/farmacie.png
+    - assets/home.png
+    - assets/mappe.png
+    - assets/profile.png
+    - assets/logo_grande.png
+    - assets/logo_piccolo.png
