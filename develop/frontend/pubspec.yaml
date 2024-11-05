@@ -20,6 +20,8 @@ dependencies:
   http: ^0.13.3
   flutter_dotenv: ^5.0.2
   supabase_flutter: ^1.4.0
+  flutter_typeahead: ^4.0.0
+  flutter_keyboard_visibility: ^5.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
