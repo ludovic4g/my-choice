@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'mappe.dart';
+import 'auth.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,7 +57,7 @@ class MyApp extends StatelessWidget {
           routes: {
             '/homepage': (context) => HomePage(),
             '/map': (context) => MapScreen(),
-            '/profile': (context) => MapScreen(),
+            '/profile': (context) => Profile(),
           },
           debugShowCheckedModeBanner: false,
         );
@@ -363,7 +364,7 @@ class HomePage extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {
-                         Navigator.pushReplacementNamed(context, '/profile');
+                         Navigator.pushNamed(context, '/profile');
                       },
                       icon: Image.asset(
                         'assets/profile.png',
