@@ -56,6 +56,7 @@ class MyApp extends StatelessWidget {
           routes: {
             '/homepage': (context) => HomePage(),
             '/map': (context) => MapScreen(),
+            '/profile': (context) => MapScreen(),
           },
           debugShowCheckedModeBanner: false,
         );
@@ -215,14 +216,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 }
 
 // HomePage con barra di navigazione arrotondata
-// HomePage con barra di navigazione arrotondata
+
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Sfondo bianco
+      backgroundColor: Colors.white, // Sfondo chiaro simile all'immagine
       appBar: AppBar(
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Stack(
         children: [
@@ -230,7 +232,7 @@ class HomePage extends StatelessWidget {
             alignment: Alignment.topCenter,
             child: Column(
               children: [
-                SizedBox(height: 50), // Spazio per abbassare il rettangolo
+                SizedBox(height: 20), // Spazio per abbassare il rettangolo
                 Stack(
                   clipBehavior: Clip.none, // Permette agli elementi di uscire dai limiti
                   children: [
@@ -244,7 +246,7 @@ class HomePage extends StatelessWidget {
                         width: 300,
                         height: 150,
                         decoration: BoxDecoration(
-                          color: Color(0xFFF2CFCF), // Colore del rettangolo interno
+                          color: Color(0xFFFFF0F0), // Colore del rettangolo interno
                           borderRadius: BorderRadius.circular(20), // Arrotondamento interno
                           border: Border.all(
                             color: Color(0xFFEB8686), // Colore del bordo interno
@@ -255,7 +257,7 @@ class HomePage extends StatelessWidget {
                           child: Text(
                             "Ciao User!",
                             style: TextStyle(
-                              fontSize: 24,
+                              fontSize: 30,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFFEB8686),
                             ),
@@ -265,19 +267,64 @@ class HomePage extends StatelessWidget {
                     ),
                     // Icona di cuore posizionata sopra il rettangolo
                     Positioned(
-                      top: -30, // Posiziona il cuore sopra il bordo del rettangolo
-                      left: 115, // Centra l'icona rispetto al rettangolo
+                      top: -90,
+                      left: 190,
                       child: Image.asset(
                         'assets/logo_piccolo.png', // Assicurati che il file sia corretto
-                        width: 70,
-                        height: 70,
+                        width: 200,
+                        height: 200,
                       ),
                     ),
                   ],
                 ),
+                SizedBox(height: 30), // Spazio tra i rettangoli
+
+                // Secondo rettangolo con icona stella
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 300,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: Color(0xFFFFF0F0),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Color(0xFFF2CFCF),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 10,
+                      top: 20,
+                      child: Icon(
+                        Icons.star,
+                        color: Color(0xFFE19C9C),
+                        size: 30,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20), // Spazio tra i rettangoli
+
+                // Terzo rettangolo senza icona
+                Container(
+                  width: 300,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFFF0F0),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Color(0xFFF2CFCF),
+                      width: 2,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
+          // Barra inferiore con icone
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -300,8 +347,8 @@ class HomePage extends StatelessWidget {
                       },
                       icon: Image.asset(
                         'assets/home.png',
-                        width: 30,
-                        height: 30,
+                        width: 25,
+                        height: 25,
                       ),
                     ),
                     IconButton(
@@ -316,7 +363,7 @@ class HomePage extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {
-                        // Implementa la navigazione per il profilo
+                         Navigator.pushReplacementNamed(context, '/profile');
                       },
                       icon: Image.asset(
                         'assets/profile.png',
