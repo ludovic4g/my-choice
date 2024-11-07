@@ -1,72 +1,123 @@
 // main.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'mappe.dart';
 import 'auth.dart';
+import 'auth_state.dart'; // Importa lo stato di autenticazione
+import 'package:hive_flutter/hive_flutter.dart';
+import 'dart:math';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Carica le variabili d’ambiente dal file .env
+  
+  await Hive.initFlutter();
+  
+  // Carica le variabili d’ambiente
   await dotenv.load(fileName: 'assets/config.env');
 
-  // Imposta la modalità a schermo intero e il colore della status bar a bianco
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Colors.white, // Colore bianco per la status bar
-    statusBarBrightness: Brightness.light, // Imposta il contenuto della status bar chiaro
-    statusBarIconBrightness: Brightness.dark, // Imposta le icone della status bar in colore scuro
-  ));
+  // Inizializza Supabase con sessione persistente
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+    authCallbackUrlHostname: 'login-callback',
+    localStorage: HiveLocalStorage(), // Assicura la persistenza della sessione
+  );
 
   runApp(MyApp());
 }
 
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
 
-class MyApp extends StatelessWidget {
-  Future<void> _initializeSupabase() async {
-    // Inizializza Supabase
-    await Supabase.initialize(
-      url: dotenv.env['SUPABASE_URL'] ?? '',
-      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
-    );
+// Chiave globale per accedere al contesto
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+class _MyAppState extends State<MyApp> {
+  bool _isLoading = true;
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSession(); // Controlla se esiste una sessione valida
+  }
+
+  Future<void> _checkSession() async {
+    final supabase = Supabase.instance.client;
+    final session = supabase.auth.currentSession;
+    if (session != null) {
+      // L'utente è loggato, recupera le informazioni dell'utente
+      final userId = session.user!.id;
+      final userResponse = await supabase
+          .from('users')
+          .select('id, username, email')
+          .eq('id', userId)
+          .maybeSingle();
+
+      if (userResponse != null) {
+        isLoggedIn = true;
+        currentUserInfo = {
+          'id': userResponse['id'],
+          'username': userResponse['username'],
+          'email': userResponse['email'],
+        };
+      } else {
+        isLoggedIn = false;
+        currentUserInfo = null;
+      }
+    } else {
+      isLoggedIn = false;
+      currentUserInfo = null;
+    }
+    setState(() {
+      _isLoading = false;
+      _isLoggedIn = isLoggedIn;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _initializeSupabase(),
-      builder: (context, snapshot) {
-        // Mostra uno splash temporaneo finché Supabase non è inizializzato
-        if (snapshot.connectionState != ConnectionState.done) {
-          return MaterialApp(
-            home: Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
+    if (_isLoading) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
 
-        // Dopo l'inizializzazione di Supabase, mostra la SplashScreen
-        return MaterialApp(
-          title: 'Mappa Italia',
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-          ),
-          home: SplashScreen(),
-          routes: {
-            '/homepage': (context) => HomePage(),
-            '/map': (context) => MapScreen(),
-            '/profile': (context) => Profile(),
-          },
-          debugShowCheckedModeBanner: false,
-        );
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      title: 'Mappa Italia',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: _isLoggedIn && currentUserInfo != null
+          ? HomePage(
+              username: currentUserInfo!['username'],
+              email: currentUserInfo!['email'],
+            )
+          : SplashScreen(), // Mostra la SplashScreen se non loggato
+      routes: {
+        '/homepage': (context) => HomePage(
+              username: currentUserInfo?['username'] ?? 'Utente',
+              email: currentUserInfo?['email'] ?? '',
+            ),
+        '/map': (context) => MapScreen(),
+        '/profile': (context) => ProfilePage(
+              username: currentUserInfo?['username'] ?? 'Utente',
+              email: currentUserInfo?['email'] ?? '',
+            ),
+        '/login': (context) => LoginPage(),
       },
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-// SplashScreen per l'avvio dell'app con logo animato, cerchi galleggianti e pulsante Entra
+// SplashScreen con animazioni delle bolle migliorate
 class SplashScreen extends StatefulWidget {
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -74,11 +125,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late AnimationController _logoController;
-  late AnimationController _buttonController;
-  late AnimationController _floatingCircleController;
-  late Animation<Offset> _logoAnimation;
-  late Animation<double> _logoOpacityAnimation;
-  late Animation<double> _buttonAnimation;
+  late List<Bubble> bubbles = [];
 
   @override
   void initState() {
@@ -89,125 +136,80 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       vsync: this,
     );
 
-    _logoAnimation = Tween<Offset>(
-      begin: Offset(0, 0.5),
-      end: Offset(0, 0),
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: Curves.easeOut,
-    ));
+    _logoController.forward();
 
-    _logoOpacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: Curves.easeIn,
-    ));
-
-    _buttonController = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    );
-
-    _buttonAnimation = CurvedAnimation(
-      parent: _buttonController,
-      curve: Curves.easeIn,
-    );
-
-    _floatingCircleController = AnimationController(
-      duration: const Duration(seconds: 3),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _logoController.forward().whenComplete(() {
-      _buttonController.forward();
+    // Naviga automaticamente dopo l'animazione
+    Future.delayed(Duration(seconds: 4), () {
+      if (isLoggedIn && currentUserInfo != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(
+              username: currentUserInfo!['username'],
+              email: currentUserInfo!['email'],
+            ),
+          ),
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Inizializza le bolle animate qui, poiché abbiamo accesso al contesto completo
+    for (int i = 0; i < 15; i++) {
+      bubbles.add(Bubble(
+        size: Random().nextDouble() * 60 + 20, // Dimensioni casuali
+        x: Random().nextDouble() * MediaQuery.of(context).size.width,
+        y: Random().nextDouble() * MediaQuery.of(context).size.height,
+        xDirection: Random().nextBool() ? 1 : -1,
+        yDirection: Random().nextBool() ? 1 : -1,
+        speed: Random().nextDouble() * 0.5 + 0.2,
+      ));
+    }
   }
 
   @override
   void dispose() {
     _logoController.dispose();
-    _buttonController.dispose();
-    _floatingCircleController.dispose();
+    for (var bubble in bubbles) {
+      bubble.controller.dispose();
+    }
     super.dispose();
-  }
-
-  Widget _buildFloatingCircle(double size, Offset offset) {
-    return Positioned(
-      left: offset.dx,
-      top: offset.dy,
-      child: AnimatedBuilder(
-        animation: _floatingCircleController,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, 10 * (_floatingCircleController.value - 0.5)),
-            child: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFFFFEAEA).withOpacity(0.5),
-              ),
-            ),
-          );
-        },
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Aggiorna le bolle
+    for (var bubble in bubbles) {
+      bubble.update(size: MediaQuery.of(context).size);
+    }
+
     return Scaffold(
-      backgroundColor: Colors.white, // Impostato lo sfondo bianco
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          _buildFloatingCircle(100, Offset(50, 150)),
-          _buildFloatingCircle(70, Offset(250, 250)),
-          _buildFloatingCircle(50, Offset(300, 650)),
-          
+          // Animazione delle bolle
+          CustomPaint(
+            painter: BubblePainter(bubbles: bubbles),
+            child: Container(),
+          ),
+          // Logo centrale
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FadeTransition(
-                  opacity: _logoOpacityAnimation,
-                  child: SlideTransition(
-                    position: _logoAnimation,
-                    child: Container(
-                      padding: EdgeInsets.all(40),
-                      child: Image.asset(
-                        'assets/logo_grande.png',
-                        width: 300,
-                        height: 300,
-                      ),
-                    ),
-                  ),
+            child: FadeTransition(
+              opacity: _logoController,
+              child: Container(
+                padding: EdgeInsets.all(40),
+                child: Image.asset(
+                  'assets/logo_grande.png',
+                  width: 300,
+                  height: 300,
                 ),
-                SizedBox(height: 5),
-                FadeTransition(
-                  opacity: _buttonAnimation,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/homepage');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFEB8686),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                    ),
-                    child: Text(
-                      "Entra",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -216,47 +218,107 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 }
 
-// HomePage con barra di navigazione arrotondata
+class Bubble {
+  double x;
+  double y;
+  double size;
+  double speed;
+  int xDirection;
+  int yDirection;
+  late AnimationController controller;
 
+  Bubble({
+    required this.x,
+    required this.y,
+    required this.size,
+    required this.speed,
+    required this.xDirection,
+    required this.yDirection,
+  }) {
+    controller = AnimationController(
+      duration: Duration(milliseconds: 0),
+      vsync: navigatorKey.currentState!.overlay!,
+    )..repeat();
+  }
+
+  void update({required Size size}) {
+    x += speed * xDirection;
+    y += speed * yDirection;
+
+    // Inverti la direzione se tocca i bordi
+    if (x <= 0 || x >= size.width) {
+      xDirection *= -1;
+    }
+    if (y <= 0 || y >= size.height) {
+      yDirection *= -1;
+    }
+  }
+}
+
+class BubblePainter extends CustomPainter {
+  List<Bubble> bubbles;
+  BubblePainter({required this.bubbles});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = Color(0xFFFFEAEA).withOpacity(0.5);
+
+    for (var bubble in bubbles) {
+      canvas.drawCircle(Offset(bubble.x, bubble.y), bubble.size / 2, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
+
+// HomePage
 class HomePage extends StatelessWidget {
+  final String username;
+  final String email;
+
+  HomePage({required this.username, required this.email});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Sfondo chiaro simile all'immagine
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false, // Rimuove il pulsante "back"
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: Stack(
         children: [
+          // Contenuto della HomePage
           Align(
             alignment: Alignment.topCenter,
             child: Column(
               children: [
-                SizedBox(height: 20), // Spazio per abbassare il rettangolo
+                SizedBox(height: 20),
                 Stack(
-                  clipBehavior: Clip.none, // Permette agli elementi di uscire dai limiti
+                  clipBehavior: Clip.none,
                   children: [
                     Container(
-                      padding: EdgeInsets.all(3), // Padding per creare lo spazio del bordo esterno
+                      padding: EdgeInsets.all(3),
                       decoration: BoxDecoration(
-                        color: Color(0xFFF2CFCF), // Colore del bordo esterno
-                        borderRadius: BorderRadius.circular(22), // Arrotondamento esterno
+                        color: Color(0xFFF2CFCF),
+                        borderRadius: BorderRadius.circular(22),
                       ),
                       child: Container(
                         width: 300,
                         height: 150,
                         decoration: BoxDecoration(
-                          color: Color(0xFFFFF0F0), // Colore del rettangolo interno
-                          borderRadius: BorderRadius.circular(20), // Arrotondamento interno
+                          color: Color(0xFFFFF0F0),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Color(0xFFEB8686), // Colore del bordo interno
-                            width: 2, // Spessore del bordo interno
+                            color: Color(0xFFEB8686),
+                            width: 2,
                           ),
                         ),
                         child: Center(
                           child: Text(
-                            "Ciao User!",
+                            "Ciao $username!",
                             style: TextStyle(
                               fontSize: 30,
                               fontWeight: FontWeight.bold,
@@ -266,21 +328,18 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // Icona di cuore posizionata sopra il rettangolo
                     Positioned(
                       top: -90,
                       left: 190,
                       child: Image.asset(
-                        'assets/logo_piccolo.png', // Assicurati che il file sia corretto
+                        'assets/logo_piccolo.png',
                         width: 200,
                         height: 200,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 30), // Spazio tra i rettangoli
-
-                // Secondo rettangolo con icona stella
+                SizedBox(height: 30),
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -307,9 +366,7 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 20), // Spazio tra i rettangoli
-
-                // Terzo rettangolo senza icona
+                SizedBox(height: 20),
                 Container(
                   width: 300,
                   height: 70,
@@ -325,7 +382,7 @@ class HomePage extends StatelessWidget {
               ],
             ),
           ),
-          // Barra inferiore con icone
+          // Barra di navigazione inferiore
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -342,9 +399,7 @@ class HomePage extends StatelessWidget {
                   children: [
                     IconButton(
                       onPressed: () {
-                        if (ModalRoute.of(context)?.settings.name != '/homepage') {
-                          Navigator.pushReplacementNamed(context, '/homepage');
-                        }
+                        // Siamo già in HomePage
                       },
                       icon: Image.asset(
                         'assets/home.png',
@@ -354,7 +409,9 @@ class HomePage extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/map');
+                        if (ModalRoute.of(context)?.settings.name != '/map') {
+                          Navigator.pushNamed(context, '/map');
+                        }
                       },
                       icon: Image.asset(
                         'assets/mappe.png',
@@ -364,7 +421,19 @@ class HomePage extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {
-                         Navigator.pushNamed(context, '/profile');
+                        if (isLoggedIn) {
+                          // Naviga alla pagina del profilo se loggato
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfilePage(
+                                  username: username, email: email),
+                            ),
+                          );
+                        } else {
+                          // Naviga alla pagina di login se non loggato
+                          Navigator.pushReplacementNamed(context, '/login');
+                        }
                       },
                       icon: Image.asset(
                         'assets/profile.png',
@@ -378,6 +447,52 @@ class HomePage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ProfilePage
+class ProfilePage extends StatelessWidget {
+  final String username;
+  final String email;
+
+  ProfilePage({required this.username, required this.email});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Profilo'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            // Torna alla pagina precedente
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Username: $username'),
+            Text('Email: $email'),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                // Logica per il logout
+                final supabase = Supabase.instance.client;
+                await supabase.auth.signOut();
+                isLoggedIn = false;
+                currentUserInfo = null;
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+              child: Text('Logout'),
+            ),
+          ],
+        ),
       ),
     );
   }

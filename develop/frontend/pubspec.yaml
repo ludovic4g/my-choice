@@ -22,6 +22,8 @@ dependencies:
   supabase_flutter: ^1.4.0
   flutter_typeahead: ^4.0.0
   flutter_keyboard_visibility: ^5.4.0
+  provider: ^6.0.5
+  hive_flutter: ^1.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
