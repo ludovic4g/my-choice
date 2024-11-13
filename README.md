@@ -1,5 +1,5 @@
 # MyChoice ❤️
-![Logo di MyChoice](develop/frontend/assets/logo_grande.png)
+![Logo di MyChoice](develop/assets/images/logo_grande.png)
 
 **MyChoice** mira ad essere una soluzione digitale che mira a semplificare l'accesso a informazioni sanitarie critiche. Con un semplice click, MyChoice ti permette di individuare rapidamente i centri sanitari e le farmacie che offrono servizi di interruzione volontaria di gravidanza, garantendo supporto alle donne in tutta Italia.
 
