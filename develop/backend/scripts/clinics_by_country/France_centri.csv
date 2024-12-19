@@ -1,0 +1,191 @@
+Nome,Indirizzo,Codice Postale,Città,Paese,Regione
+Centre hospitalier de Chartres,"34, rue du Docteur Maunoury",28018,Chartres,France,Centre
+Hôpital de Moulins,"10, avenue du Général de Gaulle",03006,Moulins,France,Auvergne
+Centre Hospitalier de Montluçon,"18, avenue du du 8 Mai 1945",03113,Montluçon,France,Auvergne
+Centre Hospitalier Jacques Lacarin,Boulevard Deniere,03207,Vichy,France,Auvergne
+Centre hospitalier Henri Mondor (Aurillac),"50, avenue de la Republique",15002,Aurillac,France,Auvergne
+Centre hospitalier (Saint-Flour),"2, avenue Docteur Mallet",15102,Saint-Flour,France,Auvergne
+Centre hospitalier (Mauriac),Avenue Fernand Tallandier,15200,Mauriac,France,Auvergne
+Centre Hospitalier Emile Roux,"12, Boulevard du Docteur Chantemesse",43012,Le Puy-en-Velay,France,Auvergne
+Centre Hospitalier Universitaire de Limoges,"2, Avenue Martin-Luther-King",87042,Limoges,France,Limousin
+CHU Hôpital Clemenceau (Caen),Avenue Georges Clemenceau,14033,Caen,France,Lower Normandy
+Hôpital Côte de Nacre,Avenue de la Côte de Nacre,14033,Caen,France,Lower Normandy
+Centre hospitalier Robert Bisson (Lisieux),"4, Rue Roger Aini",14107,Lisieux,France,Lower Normandy
+Centre hospitalier de la Côte Fleurie (Honfleur),La brèche du bois Route Départementale 62,14113,Cricqueboeuf,France,Lower Normandy
+Centre Hospitalier de Bayeux,"13, rue de Nesmond",14401,Bayeux,France,Lower Normandy
+Centre Hospitalier de Vire,"4, rue Emile Desvaux",14504,Vire,France,Lower Normandy
+Centre Hospitalier Régional Universitaire de Lille,"2, Avenue Oscar Lambret",59037,Lille,France,Nord-Pas-de-Calais
+Hôpital de la Fraternité et Résidence de la Fraternité,"20, Avenue Julien Lagache",59100,Roubaix,France,Nord-Pas-de-Calais
+Centre Hospitalier de Seclin,Rue d'Apolda,59113,Seclin,France,Nord-Pas-de-Calais
+Centre hospitalier Gustave Dron,"155, rue du President Coty",59208,Tourcoing,France,Nord-Pas-de-Calais
+Centre Hospitalier de Denain,"25 bis, rue Jean Jaurès",59220,Denain,France,Nord-Pas-de-Calais
+Centre Hospitalier de Dunkerque,"36, Rue Pont Neuf,",59240,Dunkerque,France,Nord-Pas-de-Calais
+Centre Hospitalier de Valenciennes,Avenue Désandrouin 479,59322,Valenciennes,France,Nord-Pas-de-Calais
+Centre Hospitalier Le Cateau Cambrésis,"28, Boulevard Paturle",59360,Le Cateau-Cambrésis,France,Nord-Pas-de-Calais
+Centre Hospitalier de Cambrai,"516, Avenue de Paris",59407,Cambrai,France,Nord-Pas-de-Calais
+Centre Hospitalier de Douai,Route de Cambrai,59507,Douai,France,Nord-Pas-de-Calais
+Polyclinique Grande Synthe,Avenue de la Polyclinique,59792,Grande Synthe,France,Nord-Pas-de-Calais
+Centre hospitalier Centre Hospitalier de Calais,11 Quai du Commerce,62107,Calais,France,Nord-Pas-de-Calais
+Centre hospitalier de l'arrondissement de Montreuil-sur-Mer,Rang-du-Fliers,62180,Rang-du-Fliers,France,Nord-Pas-de-Calais
+Centre hospitalier Dr Schaffner,"99, route de la Bassee",62307,Lens cedex,France,Nord-Pas-de-Calais
+Centre hospitalier de Béthune,rue Delbecque,62408,Béthune,France,Nord-Pas-de-Calais
+Centre hospitalier 'Guy Thomas',"1, Boulevard Etienne Clémentel",63204,Riom,France,Nord-Pas-de-Calais
+Centre hospitalier de Thiers,Route du Fau,63300,Thiers,France,Nord-Pas-de-Calais
+Centre Hospitalier Paul Ardier,"13, rue du Docteur Sauvat",63503,Issoire,France,Nord-Pas-de-Calais
+Centre Hospitalier d'Ambert,"14, avenue Georges Clemenceau",63600,Ambert,France,Nord-Pas-de-Calais
+Centre hospitalier Feurs,"26, rue Camille Pariat",42110,Feurs,France,Pays de la Loire
+Centre Hospitalier de Châteaubriant,Rue de Verdun,44146,Châteaubriant,France,Pays de la Loire
+Centre hospitalier Lucien Hussel (Vienne),Mont Salomon,38200,Vienne,France,Poitou-Charentes
+Centre Hospitalier de Digne les Bains,Quartier Saint-Christophe,04003,Digne les Bains,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier de Manosque,"2, rue Léon Mure",04101,Manosque,France,Provence-Alpes-Côte d'Azur
+Centre hospitalier des Escartons (Briançon),"24, avenue Adrien Daurelle",05105,Briançon,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier de Grasse,Chemin de Clavary,06130,Grasse,France,Provence-Alpes-Côte d'Azur
+Groupe hospitalier l'Archet (Nice),"151, Route Saint Antoine Ginestiere",06202,Nice,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier Pierre-Nouveau (Cannes),"15, avenue des Broussailles",06414,Cannes,France,Provence-Alpes-Côte d'Azur
+Centre hospitalier La Palmosa (Menton),"2, avenue Antoine Péglion",06507,Menton,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier d'Antibes Juan-les-Pins (Antibes),Quartier la Fontonne 107,06606,Antibes,France,Provence-Alpes-Côte d'Azur
+AP-HM Hôpital de la Conception (Marseille),"147, boulevard Baille",13385,Marseille,France,Provence-Alpes-Côte d'Azur
+Centre hospitalier du pays d'Aix (Aix-en-Provence),Avenue des Tamaris,13616,Aix-en-Provence,France,Provence-Alpes-Côte d'Azur
+Centre hospitalier Joseph Imbert (Arles),Quartier Haut de Fourchon,13637,Arles,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier de Salon de Provence,"207, avenue Julien Fabre",13658,Salon de Provence,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier de Martigues,"3, boulevard des Rayettes",13698,Martigues,France,Provence-Alpes-Côte d'Azur
+AP-HM Hôpital Nord (Marseille),Chemin des Bourrely,13915,Marseille,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier de la Dracénie (Draguignan),route de Montferrat,83007,Draguignan,France,Provence-Alpes-Côte d'Azur
+Centre hospitalier intercommunal Toulon - La Seyne sur Mer (C.H.I.T.S.),1208 Avenue Colonel Picot,83056,Toulon,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier Jean Marcel,Traverse des Capucins,83177,Brignoles,France,Provence-Alpes-Côte d'Azur
+Centre hospitalier Marie José TREFFOT,Avenue Maréchal Juin,83407,Hyères,France,Provence-Alpes-Côte d'Azur
+Pôle de Santé du Golfe de Saint-Tropez Centre Hospitalier de Saint-Tropez,RD 559- Rond Point du Général Diégo Brosset,83580,Gassin,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier Louis Giorgi,Avenue de Lavoisier,84106,Orange,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier de Pertuis,"58, rue de Croze",84123,Pertuis,France,Provence-Alpes-Côte d'Azur
+Centre hospitalier de Carpentras,Rond point de l'Amitié,84208,Carpentras,France,Provence-Alpes-Côte d'Azur
+Centre hospitalier intercommunal de Cavaillon - Lauris,"119, avenue Georges Clemenceau",84304,Cavaillon,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier Jules Niel,Cours Tivoli,84600,Valréas,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier Henri Duffaut,"305, Rue Raoul Follereau",84902,Avignon,France,Provence-Alpes-Côte d'Azur
+Centre Hospitalier du Haut-Bugey,"1, Route de Veyziat",01100,Oyonnax,France,Rhône-Alpes
+Centre hospitalier général de Belley,52 rue Georges Girerd,01300,Belley,France,Rhône-Alpes
+Centre Hospitalier des Vals d'Ardèche,"2, Avenue Pasteur",07007,Privas,France,Rhône-Alpes
+Centre Hospitalier Annonay,"119, Rue du Bon Pasteur",07103,Annonay,France,Rhône-Alpes
+Centre hospitalier d'Ardèche Méridionale (Aubenas),"14-16, Avenue Bellande",07205,Aubenas,France,Rhône-Alpes
+Centre hospitalier Edmond Garcin (Aubagne),"179, Avenue des Sœurs Gastine",13677,Aubagne,France,Rhône-Alpes
+Centre hospitalier (La Ciotat),Boulevard Lamartine,13708,La Ciotat,France,Rhône-Alpes
+Hôpitaux Drôme Nord (Romans-sur-Isère),607 av. Geneviève De Gaulle Anthonioz BP 1002,26102,Romans-sur-Isère Cedex,France,Rhône-Alpes
+Centre hospitalier (Dié),rue Bouvier,26150,Dié,France,Rhône-Alpes
+Centre hospitalier (Montélimar),Route de Sauzet,26216,Montélimar,France,Rhône-Alpes
+HOPITAUX Drôme Nord - St Vallier,Rue Pierre Valette 30,26241,Saint-Vallier,France,Rhône-Alpes
+Centre hospitalier (Crest),Quartier Mazorel Nord,26400,Crest,France,Rhône-Alpes
+Centre hospitalier (Valence),"179, boulevard Maréchal Juin",26953,Valence,France,Rhône-Alpes
+Centre hospitalier universitaire de Grenoble,BP 217,38043,Grenoble cedex 09,France,Rhône-Alpes
+Centre Hospitalier Pierre Oudot (Bourgoin-Jallieu),"35, avenue Maréchal Leclerc",38317,Bourgoin-Jallieu Cedex,France,Rhône-Alpes
+Hôpital Nord Saint Priest en Jarez,Avenue Albert Raimond CHU de St Etienne Hopital Nord,42055,St Etienne,France,Rhône-Alpes
+Centre Hospitalier de Roanne,28 rue Charlieu,42300,Roanne ´,France,Rhône-Alpes
+Centre hospitalier du Pays de Gier,"19, rue Victor Hugo",42403,Saint-Chamond,France,Rhône-Alpes
+Centre Hospitalier Montbrison,Avenue des Monts du Soir 219,42605,Montbrison Cedex,France,Rhône-Alpes
+Centre hospitalier de Firminy,"2, rue de Bénaud",42700,Firminy,France,Rhône-Alpes
+Centre Hospitalier de Sainte-Foy-les-Lyon,"78, Chemin de Montray",69110,Sainte-Foy-les-Lyon,France,Rhône-Alpes
+Centre hospitalier de Tarare,"1, boulevard JB Martin",69170,Tarare,France,Rhône-Alpes
+HCL Groupement Hospitalier du Nord – Hôtel Dieu,"1, Place de l’Hôpital",69288,Lyon,France,Rhône-Alpes
+HCL Groupement Hospitalier - Hôpital Edouard Herriot,"5, place d’Arsonval",69437,Lyon,France,Rhône-Alpes
+HCL Groupement Hospitalier du Sud - Centre hospitalier Lyon-Sud,"165, Chemin du Grand Revoyet",69495,Pierre-Bénite Cedex,France,Rhône-Alpes
+Centre hospitalier de Chambéry,"7, Square Massalaz",73011,Chambéry,France,Rhône-Alpes
+Centre hospitalier de Villefranche-sur-Saône,Plateau d'ouilly-Gleize,73100,Aix-Les-Bains,France,Rhône-Alpes
+Centre hospitalier intercommunal d'Albertville-Moutiers,"253, Rue Pierre Coubertin",73208,Albertville,France,Rhône-Alpes
+Centre hospitalier de Saint-Jean-de-Maurienne,"81, rue du Docteur Grange",73303,Saint-Jean-de-Maurienne cedex,France,Rhône-Alpes
+Centre hospitalier de Bourg-Saint-Maurice,Avenue Du Nantet,73704,Bourg-Saint-Maurice,France,Rhône-Alpes
+Centre hospitalier intercommunal Annemasse - Bonneville,"17, rue du Jura",74107,Annemasse,France,Rhône-Alpes
+Centre Hospitalier Intercommunal Sud-Léman Valserine,rue Amédée VIII de Savoie,74164,Saint-Julien-en-Genevois,France,Rhône-Alpes
+Centre hospitalier Intercommunal Les Hôpitaux du Léman,"3, Avenue de la Dame",74203,Thonon-les-Bains,France,Rhône-Alpes
+Centre Hospitalier Intercommunal Hôpitaux du Pays du Mont-Blanc,"380, rue de l'Hôpital",74703,Sallanches,France,Rhône-Alpes
+Centre hospitalier de Bourg-En-Bresse,"900, Route de Paris",90401,Bourg-En-Bresse,France,Rhône-Alpes
+Dr. Laurence Quentel-Archier,20 rue Croix des Petits Champs,75001,Paris,France,Île-de-France
+"Le Planning Familial 75 Vivienne, Centre de Planification et d'Education Familiale",10 rue Vivenne,75002,Paris,France,Île-de-France
+"Hôtel-Dieu, Hôpitaux universitaires Paris Centre","1, place du Parvis Notre-Dame",75004,Paris 4ème,France,Île-de-France
+Dr. Maurice Halioua,47 boulevard Henri IV,75004,Paris,France,Île-de-France
+Dr. Amina Yamgnane,71 Boulevard Raspail,75006,Paris,France,Île-de-France
+Dr. Cécile de Noblens,30 rue Monsieur le Prince,75006,Paris,France,Île-de-France
+Dr. Claire Nyssen-Noel,75 rue de Rennes,75006,Paris,France,Île-de-France
+Dr. Christine Louis-Vahdat,126 boulevard St Germain,75006,Paris,France,Île-de-France
+Dr. Christian Jamin,169 boulevard Haussmann,75008,Paris,France,Île-de-France
+Dr. Gérard Marzouk,43 Boulevard Malesherbes,75008,Paris,France,Île-de-France
+Dr. Laurence Meng,37 bis rue de Ponthieu,75008,Paris,France,Île-de-France
+Dr. Nathan Wrobel,7 Rue Bayard,75008,Paris,France,Île-de-France
+Dr. Michel Molinier,"46, rue Fontaine",75009,Paris,France,Île-de-France
+Dr. Jean-Jaques Weitzman,45 rue de Maubeuge,75009,Paris,France,Île-de-France
+Dr. Isaac Neuman,15 rue de Bellefond,75009,Paris,France,Île-de-France
+Dr. Sylvie Fridmann,14 rue de Châteaudun,75009,Paris,France,Île-de-France
+Dr. Annick Grinsztejn,45 rue de Maubeuge,75009,Paris,France,Île-de-France
+Dr. Lucien Chaby,45 rue de Maubeuge,75009,Paris,France,Île-de-France
+Hôpital Saint-Louis,1 Avenue Claude Vellefaux,75010,Paris,France,Île-de-France
+Dr. Catherine Chaumie,21 Boulevard de Strasbourg,75010,Paris,France,Île-de-France
+Le Planning Familial 75 Hittorf,2 rue Hittorf,75010,Paris,France,Île-de-France
+Centre Hospitalier Lariboisière,2 rue Ambroise Paré,75010,Paris,France,Île-de-France
+Dr. Dominique Plaeteaux,5 Place Léon Blum,75011,Paris,France,Île-de-France
+Dr. Martine Hatchuel,15 Boulevard Richard Lenoir,75011,Paris,France,Île-de-France
+Dr. Catherine Rouet,71 rue de la Roquette,75011,Paris,France,Île-de-France
+Dr. Isabelle de Beco,10 passage Lisa,75011,Paris,France,Île-de-France
+Dr. Christine Leballonnier,90 rue Jean Pierre Timbaud,75011,Paris,France,Île-de-France
+Dr. Veronique Pic,141 rue du Chemin Vert,75011,Paris,France,Île-de-France
+Dr. Catherine Soulat,15 Boulevard Richard Lenoir,75011,Paris,France,Île-de-France
+Dr. Danielle-Eugénie Adorian,10 Passage Lisa,75011,Paris,France,Île-de-France
+Dr. Yann Chen,157 rue Amelot,75011,Paris,France,Île-de-France
+Dr. Danielle Hassoun,5 Place Léon Blum,75011,Paris,France,Île-de-France
+Dr. Rebecca Rotnemer,14bis Passage Saint-Pierre Amelot,75011,Paris,France,Île-de-France
+Dr. Myriam Mansour Hugues,5B Avenue de Saint-Mandé,75012,Paris,France,Île-de-France
+Dr. Marie-Odile Guilhelmsans-Vende,115 rue de Reuilly,75012,Paris,France,Île-de-France
+GCS Bluets-Trousseau,6 rue Lasson,75012,Paris,France,Île-de-France
+"Pitié-Salpêtrière, Groupe Hospitalier La Pitié Salpêtrière-Charles Foix","47-83, boulevard de l'Hôpital",75013,Paris 13ème,France,Île-de-France
+Dr. Laurence Daix et Dr. Jean-Pierre Dodeman,56 rue de Domrémy,75013,Paris,France,Île-de-France
+Dr. Ying Yang Wang,70 avenue d'Ivry,75013,Paris,France,Île-de-France
+"Institut Mutualiste Montsouris, Centre de Planification et d'Education Familiale - Hôpital",42 Boulevard Jourdan,75014,Paris,France,Île-de-France
+Hôpital Port-Royal,53 Avenue de l' Observatoire,75014,Paris,France,Île-de-France
+Dr. Laurence Danjou et Dr. Stella Hadida-Danan,150 rue Raymond Losserand,75014,Paris,France,Île-de-France
+Dr. Prisca Jami-Ceccomori,276 boulevard Raspail,75014,Paris,France,Île-de-France
+Dr. Danièle Descombey,5 boulevard Edgar Quinet,75014,Paris,France,Île-de-France
+Dr. Emile Cohen,118 boulevard du Montparnasse,75014,Paris,France,Île-de-France
+"Institut Alfred Fournier, Centre de Planification et d'Education Familiale",25 Boulevard Saint-Jacques,75014,Paris,France,Île-de-France
+Dr. Claire-Noelle Collardey,295 bd Raspail,75014,Paris,France,Île-de-France
+Dr. Laurent Arditti,71 rue du Commerce,75015,Paris,France,Île-de-France
+Dr. Romain Guilherme,2 Square du Croisic,75015,Paris,France,Île-de-France
+Hôpital Européen Georges Pompidou - HEGP,20 Rue Leblanc,75015,Paris,France,Île-de-France
+Dr. Marie Msika-Razon,150 Boulevard du Montparnasse,75015,Paris,France,Île-de-France
+Dr. Claire Zysman,1 avenue Félix Faure,75015,Paris,France,Île-de-France
+Centre Etudes et santé,12 rue Viala,75015,Paris,France,Île-de-France
+Dr. Myrtille Riera-Ponge,123 avenue de Wagram,75016,Paris,France,Île-de-France
+Dr. Bernard Rouch,"60, avenue d'Iéna",75016,Paris,France,Île-de-France
+Dr. Aude Recoules-Arche,11 avenue d’Eylau,75016,Paris,France,Île-de-France
+Dr. Jean-Claude Guillat,60 Avenue Paul Doumer,75016,Paris,France,Île-de-France
+Dr. Agnés Butler,9 avenue Carnot,75017,Paris,France,Île-de-France
+Dr. Michèle Naouri-Vischel,54 rue de Prony,75017,Paris,France,Île-de-France
+"Centre Curnonsky, Centre de Planification et d'Education Familiale",27 rue Curnonsky,75017,Paris,France,Île-de-France
+Dr. Margarita Voronitcheva,17 rue Alfred Roll,75017,Paris,France,Île-de-France
+Dr. Joelle Teboul,7 rue Lecomte,75017,Paris,France,Île-de-France
+Dr. Isabelle Dagousset,123 avenue de Wagram,75017,Paris,France,Île-de-France
+Dr. Francis Pomey,36 rue des Abbesses,75018,Paris,France,Île-de-France
+Hôpital Bichat,46 Rue Henri Huchard,75018,Paris,France,Île-de-France
+Dr. Estelle Heba Jacob,8 rue Caplat,75018,Paris,France,Île-de-France
+Centre Gaston Tessier,12 rue Gaston Tessier,75019,Paris,France,Île-de-France
+Dr. Léon Koubbi,83 rue de l'Ourcq,75019,Paris,France,Île-de-France
+"Hôpital Robert Debré, Centre de Planification et d'Education Familiale - Hôpital",48 Boulevard Sérurier,75019,Paris,France,Île-de-France
+La Maison de Santé Michelet,1 rue Colette Magny,75019,Paris,France,Île-de-France
+Dr. Philippe Denoyelle,10 rue du Jourdain,75020,Paris,France,Île-de-France
+Dr. Roger Dupuy,34 Boulevard de Charonne - Entrée au 3 rue des ormeaux,75020,Paris,France,Île-de-France
+Dr. Omar Flici,31 cours de Vincennes,75020,Paris,France,Île-de-France
+Dr. Mady Denantes,391 rue des Pyrénées,75020,Paris,France,Île-de-France
+Dr. Nadine Lazimi,239 rue des Pyrénées,75020,Paris,France,Île-de-France
+Hôpital Tenon,4 rue de la Chine,75020,Paris,France,Île-de-France
+"Lariboisière, Hôpitaux universitaires Saint-Louis Lariboisière Fernand-Widal","2, rue Ambroise - Paré",75475,Paris,France,Île-de-France
+AP-HP Hôpital Saint Antoine,"184, rue du Faubourg Saint-Antoine",75571,Paris,France,Île-de-France
+"Cochin, Hôpitaux universitaires Paris Centre","27, rue du Faubourg Saint-Jacques",75679,Paris,France,Île-de-France
+BICHAT - CLAUDE-BERNARD Groupement hospitalier universitaire Nord,"46, rue Henri-Huchard",75877,Paris,France,Île-de-France
+AP-HP Hôpital Tenon,"4, rue de la Chine",75970,Paris,France,Île-de-France
+Centre hospitalier intercommunal de Poissy-Saint-Germain-en-Laye,"20, rue Armagis",78105,Saint-Germain-en-Laye,France,Île-de-France
+Centre Hospitalier de Versailles,"177, rue de Versailles",78157,Le Chesnay,France,Île-de-France
+Centre hospitalier de Rambouillet,"5/7, Rue Pierre et Marie Curie",78514,Rambouillet,France,Île-de-France
+Centre Hospitalier Sud Essonne Dourdan-Etampes,"2, rue du Potelet",91415,Dourdan,France,Île-de-France
+"Antoine-Béclère, Hôpitaux universitaires Paris-Sud","157, rue de la Porte de Trivaux",92141,Clamart,France,Île-de-France
+Centre Hospitalier Intercommunal André Grégoire,"56, Boulevard de la Boissière",93105,Montreuil-Sous-Bois,France,Île-de-France
+Groupe Hospitalier de Saint-Denis,"2, rue du Docteur Pierre Delafontaine",93205,St-Denis,France,Île-de-France
+Groupe Hospitalier Intercommunal Le Raincy-Montfermeil,"10, Avenue du Général Leclerc",93370,Montfermeil,France,Île-de-France
+Centre hospitalier intercommunal Robert Ballanger,Boulevard Robert Ballanger,93602,Aulnay-Sous-Bois,France,Île-de-France
+Centre Hospitalier Victor Dupouy,"69, rue du Lieutenant Colonel Prudhon",95107,Argenteuil,France,Île-de-France
+Centre hospitalier des Portes de l'Oise,"25, rue Edmond Turcq",95260,Beaumont-Sur-Oise,France,Île-de-France
+Centre Hospitalier René Dubos,"6, Avenue de l’Ile-de-France",95303,Pontoise,France,Île-de-France
