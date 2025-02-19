@@ -4,9 +4,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>frontend</string>
+    <string>MyChoice</string>
     <key>CFBundleDisplayName</key>
-    <string>Frontend</string>
+    <string>MyChoice</string>
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 

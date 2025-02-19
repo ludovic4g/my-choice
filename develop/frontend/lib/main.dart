@@ -4,6 +4,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'mappe.dart';
 import 'auth.dart';
+import 'spatial.dart';
+import 'register.dart';
+import 'favourites.dart';
 import 'auth_state.dart'; // Importa lo stato di autenticazione
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:math';
@@ -61,6 +64,8 @@ class _MyAppState extends State<MyApp> {
         isLoggedIn = true;
         currentUserInfo = {
           'id': userResponse['id'],
+          'nome': userResponse['nome'],
+          'cognome': userResponse['cognome'],
           'username': userResponse['username'],
           'email': userResponse['email'],
         };
@@ -98,19 +103,29 @@ class _MyAppState extends State<MyApp> {
           ? HomePage(
               username: currentUserInfo!['username'],
               email: currentUserInfo!['email'],
+              nome: currentUserInfo!['nome'],
+              cognome: currentUserInfo!['cognome'],
             )
           : SplashScreen(), // Mostra la SplashScreen se non loggato
       routes: {
         '/homepage': (context) => HomePage(
               username: currentUserInfo?['username'] ?? 'Utente',
               email: currentUserInfo?['email'] ?? '',
+              nome: currentUserInfo?['nome'] ?? '',
+              cognome: currentUserInfo?['cognome'] ?? '',
             ),
         '/map': (context) => MapScreen(),
         '/profile': (context) => ProfilePage(
               username: currentUserInfo?['username'] ?? 'Utente',
               email: currentUserInfo?['email'] ?? '',
+              nome: currentUserInfo?['nome'] ?? '',
+              cognome: currentUserInfo?['cognome'] ?? '',
             ),
         '/login': (context) => LoginPage(),
+        '/register': (context) => RegisterPage(),
+        '/favourites': (context) => FavouritePage(),
+        '/spatial': (context) => SpatialPage(),
+        
       },
       debugShowCheckedModeBanner: false,
     );
@@ -147,6 +162,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             builder: (context) => HomePage(
               username: currentUserInfo!['username'],
               email: currentUserInfo!['email'],
+              nome: currentUserInfo!['nome'],
+              cognome: currentUserInfo!['cognome'],
             ),
           ),
         );
@@ -236,7 +253,7 @@ class Bubble {
     required this.yDirection,
   }) {
     controller = AnimationController(
-      duration: Duration(milliseconds: 0),
+      duration: Duration(milliseconds: 1000),
       vsync: navigatorKey.currentState!.overlay!,
     )..repeat();
   }
@@ -276,8 +293,10 @@ class BubblePainter extends CustomPainter {
 class HomePage extends StatelessWidget {
   final String username;
   final String email;
+  final String nome;
+  final String cognome;
 
-  HomePage({required this.username, required this.email});
+  HomePage({required this.username, required this.email, required this.nome, required this.cognome});
 
   @override
   Widget build(BuildContext context) {
@@ -343,7 +362,8 @@ class HomePage extends StatelessWidget {
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    Container(
+                    InkWell(
+                    child: Container(
                       width: 300,
                       height: 70,
                       decoration: BoxDecoration(
@@ -354,6 +374,21 @@ class HomePage extends StatelessWidget {
                           width: 2,
                         ),
                       ),
+                      child: Center(
+                          child: Text(
+                            "Preferiti",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFEB8686),
+                            ),
+                          ),
+                        ),
+                    ),
+                    onTap: () {
+                      Navigator.pushReplacementNamed(context, '/favourites');
+                      // print("Favourites cliccato!");
+                    }
                     ),
                     Positioned(
                       right: 10,
@@ -365,19 +400,6 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-                SizedBox(height: 20),
-                Container(
-                  width: 300,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: Color(0xFFFFF0F0),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Color(0xFFF2CFCF),
-                      width: 2,
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -427,7 +449,7 @@ class HomePage extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => ProfilePage(
-                                  username: username, email: email),
+                                  username: username, email: email, nome: nome, cognome: cognome),
                             ),
                           );
                         } else {
@@ -456,43 +478,126 @@ class HomePage extends StatelessWidget {
 class ProfilePage extends StatelessWidget {
   final String username;
   final String email;
+  final String cognome;
+  final String nome;
 
-  ProfilePage({required this.username, required this.email});
+  ProfilePage({required this.username, required this.email, required this.nome, required this.cognome});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Sfondo rosa chiaro
       appBar: AppBar(
-        title: Text('Profilo'),
+        title: Text(
+          'Profilo',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
         centerTitle: true,
+        elevation: 0,
+        backgroundColor: Color(0xFFFCEDED), // Colore sfondo AppBar
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            // Torna alla pagina precedente
             Navigator.pop(context);
           },
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Username: $username'),
-            Text('Email: $email'),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                // Logica per il logout
-                final supabase = Supabase.instance.client;
-                await supabase.auth.signOut();
-                isLoggedIn = false;
-                currentUserInfo = null;
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-              child: Text('Logout'),
+      
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Icona del profilo circolare
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: Color(0xFFE5A9A9), // Colore rosa più scuro
+            child: Icon(Icons.person, size: 50, color: Colors.white),
+          ),
+          SizedBox(height: 20),
+
+          // Contenitore delle informazioni
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 30),
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Color(0xFFF2CFCF), // Rosa più scuro per il box
+              borderRadius: BorderRadius.circular(15),
             ),
-          ],
-        ),
+            child: Column(
+              children: [
+                InfoField(label: "Username", value: username),
+                InfoField(label: "Email", value: email),
+                InfoField(label: "Nome", value: nome),
+                InfoField(label: "Cognome", value: cognome),
+              ],
+            ),
+          ),
+
+          SizedBox(height: 30),
+
+          // Pulsante di logout
+          ElevatedButton(
+            onPressed: () async {
+              final supabase = Supabase.instance.client;
+              await supabase.auth.signOut();
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFE5A9A9), // Rosa scuro per il bottone
+              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: Text(
+              'Logout',
+              style: TextStyle(fontSize: 16, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Widget per i campi delle informazioni utente
+class InfoField extends StatelessWidget {
+  final String label;
+  final String value;
+
+  InfoField({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 16, color: Colors.black),
+            ),
+          ),
+        ],
       ),
     );
   }

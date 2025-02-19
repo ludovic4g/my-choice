@@ -1,8 +1,8 @@
-// auth.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'auth_state.dart'; // Importa lo stato di autenticazione
 import 'main.dart';
+import 'register.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -24,7 +24,7 @@ class _LoginPageState extends State<LoginPage> {
 
       final userResponse = await supabase
           .from('users')
-          .select('id, username, email, password')
+          .select('id, username, email, password, nome, cognome')
           .eq('email', email)
           .maybeSingle();
 
@@ -42,6 +42,8 @@ class _LoginPageState extends State<LoginPage> {
         print('Password corretta per l\'utente con email "$email".');
         final username = userResponse['username'];
         final userEmail = userResponse['email'];
+        final nome = userResponse['nome'];
+        final cognome = userResponse['cognome'];
         print('=== DEBUG LOGIN: Dati Utente ===');
         print('ID Utente: ${userResponse['id']}');
         print('Username: $username');
@@ -52,6 +54,8 @@ class _LoginPageState extends State<LoginPage> {
         isLoggedIn = true;
         currentUserInfo = {
           'id': userResponse['id'],
+          'nome': userResponse['nome'],
+          'cognome': userResponse['cognome'],
           'username': username,
           'email': userEmail,
         };
@@ -60,7 +64,8 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomePage(username: username, email: userEmail),
+            builder: (context) =>
+                HomePage(username: username, email: userEmail, nome: nome, cognome: cognome),
           ),
         );
       } else {
@@ -79,46 +84,89 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _register() async {
+    Navigator.pushReplacementNamed(context, '/register');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Accesso'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            // Torna alla pagina precedente
-            Navigator.pop(context);
-          },
-        ),
-      ),
+      backgroundColor: Colors.white, // Background impostato su white
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-             TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
+            SizedBox(height: 20),
+            Image.asset(
+              'assets/logo_piccolo.png', 
+              height: 150,
             ),
-             TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
+            SizedBox(height: 20),
+            Text(
+              'Login',
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFD46A6A),
+              ),
             ),
-             SizedBox(height: 20),
-             ElevatedButton(
+            SizedBox(height: 10),
+            _buildTextField(_emailController, 'Email'),
+            _buildTextField(_passwordController, 'Password', isPassword: true),
+            SizedBox(height: 20),
+            ElevatedButton(
               onPressed: _login,
-              child: Text('Login'),
+              child: Text(
+                  'Conferma',
+                  style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFEB8686),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
             ),
-             SizedBox(height: 20),
-             ElevatedButton(
-              onPressed: () {
-                // Logica per la registrazione
-              },
-              child: Text('Registrazione'),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _register,
+              child: Text(
+                  'Registrati',
+                  style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFEB8686),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, {bool isPassword = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Container(
+        width: 400,
+        child: TextField(
+          controller: controller,
+          obscureText: isPassword,
+          style: TextStyle(fontSize: 14),
+          decoration: InputDecoration(
+            labelText: label,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(color: Colors.pink.shade400),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+          ),
         ),
       ),
     );

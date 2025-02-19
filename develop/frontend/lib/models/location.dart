@@ -40,4 +40,20 @@ class LocationModel {
       annotazioni: map['Annotazioni'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'Nome': nome,
+      'Indirizzo': indirizzo,
+      'CAP': cap,
+      'Citta': citta,
+      'Numero': numero,
+      'Orari': orari,
+      'ivg_farm': ivgFarm,
+      'ivg_chirurgica': ivgChirurgica,
+      'itg': itg,
+      'Annotazioni': annotazioni,
+    };
+  }
 }

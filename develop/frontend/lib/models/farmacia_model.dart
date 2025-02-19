@@ -1,4 +1,3 @@
-// models/farmacia.dart
 class FarmaciaModel {
   final int id;
   final String indirizzo;
@@ -12,7 +11,6 @@ class FarmaciaModel {
     required this.comune,
   });
 
-  // Costruttore per creare un `FarmaciaModel` da una mappa
   factory FarmaciaModel.fromMap(Map<String, dynamic> map) {
     return FarmaciaModel(
       id: map['id'],
@@ -20,5 +18,14 @@ class FarmaciaModel {
       descrizione: map['descrizione'] ?? '',
       comune: map['comune'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'indirizzo': indirizzo,
+      'descrizione': descrizione,
+      'comune': comune,
+    };
   }
 }
