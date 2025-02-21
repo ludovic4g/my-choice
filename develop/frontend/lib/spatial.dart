@@ -2,6 +2,114 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:math' as math;
 
+// -------------------
+// MODELLO/REPORT
+// -------------------
+class CountryAnalysis {
+  final String country;
+  final int markerCount;
+  final double area; // in km²
+  final double areaPerMarker;
+  final double meanNearestDistance; // in km
+  final double moranI;
+  
+  CountryAnalysis({
+    required this.country,
+    required this.markerCount,
+    required this.area,
+    required this.areaPerMarker,
+    required this.meanNearestDistance,
+    required this.moranI,
+  });
+}
+
+class ReportPage extends StatelessWidget {
+  final List<CountryAnalysis> countryAnalyses;
+
+  ReportPage({required this.countryAnalyses});
+
+  @override
+  Widget build(BuildContext context) {
+    // Ordina i dati in ordine decrescente per numero di marker
+    List<CountryAnalysis> sortedAnalyses = List.from(countryAnalyses)
+      ..sort((a, b) => b.markerCount.compareTo(a.markerCount));
+
+    // Testo di spiegazione (adattabile secondo necessità)
+    String explanation =
+        "Spiegazione dei Dati:\n\n"
+        "1. Bounding Box: Rettangolo che racchiude tutti i punti di un Paese (latitudine/longitudine minime e massime). "
+        "L'area si calcola approssimando le distanze tra le coordinate.\n\n"
+        "2. Area per Marker: Rapporto tra l'area del Bounding Box e il numero di punti. "
+        "Valore basso = distribuzione densa, alto = più sparsa.\n\n"
+        "3. Distanza Media dal Nearest Neighbor: Media delle distanze tra ogni punto e il punto più vicino. "
+        "Più è bassa, più i punti sono concentrati.\n\n"
+        "4. Moran's I: Indice di autocorrelazione spaziale. "
+        "Valori positivi > 0 indicano aggregazione, vicino allo 0 indica distribuzione casuale, valori negativi indicano dispersione.\n\n"
+        "Valutazione della Copertura Territoriale:\n"
+        "  • Migliore copertura: calcolo basato sull'Area/Marker più bassa.\n"
+        "  • Peggiore copertura: Area/Marker più alta.\n\n"
+        "Identificazione delle Aree di Concentrazione/Dispersione:\n"
+        "  • Migliore concentrazione: Nearest Neighbor più basso.\n"
+        "  • Maggiore dispersione: Nearest Neighbor più alto.";
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Resoconto Dati"),
+        backgroundColor: Color(0xFFFFF6F2),
+        titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
+      ),
+      backgroundColor: Color(0xFFFFF6F2),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Card(
+              elevation: 2,
+              margin: EdgeInsets.only(bottom: 16),
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  explanation,
+                  style: TextStyle(fontSize: 14),
+                ),
+              ),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: [
+                  DataColumn(label: Text("Country", style: TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text("Marker", style: TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text("Area (km²)", style: TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text("Area/Marker (km²)", style: TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text("Nearest (km)", style: TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text("Moran's I", style: TextStyle(fontWeight: FontWeight.bold))),
+                ],
+                rows: sortedAnalyses.map((ca) {
+                  return DataRow(
+                    cells: [
+                      DataCell(Text(ca.country)),
+                      DataCell(Text(ca.markerCount.toString())),
+                      DataCell(Text(ca.area.toStringAsFixed(2))),
+                      DataCell(Text(ca.areaPerMarker.toStringAsFixed(2))),
+                      DataCell(Text(ca.meanNearestDistance.toStringAsFixed(2))),
+                      DataCell(Text(ca.moranI.toStringAsFixed(4))),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// -------------------
+// PAGINA PRINCIPALE
+// -------------------
 class SpatialPage extends StatefulWidget {
   @override
   _SpatialPageState createState() => _SpatialPageState();
@@ -94,6 +202,7 @@ class _SpatialPageState extends State<SpatialPage> {
           },
         ),
         actions: [
+          // Icona per mostrare i dati di analisi del Paese corrente
           IconButton(
             icon: Icon(Icons.article_rounded, color: Color(0xFFEB8686)),
             onPressed: () {
@@ -103,9 +212,24 @@ class _SpatialPageState extends State<SpatialPage> {
               });
             },
           ),
+          // Icona per ranking densità
           IconButton(
             icon: Icon(Icons.format_list_numbered_rtl, color: Color(0xFFEB8686)),
             onPressed: _showDensityRanking,
+          ),
+          // Icona per navigare alla pagina di Report globale
+          IconButton(
+            icon: Icon(Icons.pie_chart, color: Color(0xFFEB8686)),
+            onPressed: () {
+              // Calcoliamo le analisi per TUTTI i Paesi e navighiamo a ReportPage
+              List<CountryAnalysis> allAnalyses = _computeAllCountriesAnalysis();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ReportPage(countryAnalyses: allAnalyses),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -126,7 +250,7 @@ class _SpatialPageState extends State<SpatialPage> {
                   ),
                 ],
               ),
-              // ClipRRect per arrotondare la mappa se vogliamo
+              // ClipRRect per arrotondare la mappa
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: GoogleMap(
@@ -148,7 +272,7 @@ class _SpatialPageState extends State<SpatialPage> {
               ),
             ),
           ),
-          // Popup info
+          // Popup info sul paese corrente
           if (_showPopup)
             Positioned(
               left: 50,
@@ -251,20 +375,100 @@ class _SpatialPageState extends State<SpatialPage> {
     );
   }
 
-  String _getPreviousCountry(String country) {
-    List<String> countries = countryCoordinates.keys.toList();
-    int currentIndex = countries.indexOf(country);
-    int previousIndex = (currentIndex - 1 + countries.length) % countries.length;
-    return countries[previousIndex];
+  // Restituisce la lista di analisi complete su TUTTI i Paesi
+  List<CountryAnalysis> _computeAllCountriesAnalysis() {
+    List<CountryAnalysis> analyses = [];
+    countryCoordinates.forEach((country, points) {
+      if (points.isEmpty) {
+        analyses.add(CountryAnalysis(
+          country: country,
+          markerCount: 0,
+          area: 0,
+          areaPerMarker: 0,
+          meanNearestDistance: 0,
+          moranI: 0,
+        ));
+      } else {
+        double minLat = points.map((p) => p.latitude).reduce(math.min);
+        double maxLat = points.map((p) => p.latitude).reduce(math.max);
+        double minLng = points.map((p) => p.longitude).reduce(math.min);
+        double maxLng = points.map((p) => p.longitude).reduce(math.max);
+
+        double latDist = _calculateDistance(LatLng(minLat, minLng), LatLng(maxLat, minLng));
+        double lngDist = _calculateDistance(LatLng(minLat, minLng), LatLng(minLat, maxLng));
+        double area = latDist * lngDist; // in km²
+        int markerCount = points.length;
+        double areaPerMarker = (markerCount > 0) ? (area / markerCount) : 0;
+
+        // Distanza media nearest neighbor
+        double totalNearestDistance = 0;
+        for (int i = 0; i < points.length; i++) {
+          double nearest = double.infinity;
+          for (int j = 0; j < points.length; j++) {
+            if (i == j) continue;
+            double d = _calculateDistance(points[i], points[j]);
+            if (d < nearest) nearest = d;
+          }
+          if (nearest == double.infinity) nearest = 0;
+          totalNearestDistance += nearest;
+        }
+        double meanNearestDistance = (points.isNotEmpty) ? totalNearestDistance / points.length : 0;
+        // Moran's I
+        double moranI = _computeCountryGridMoranI(points);
+
+        analyses.add(CountryAnalysis(
+          country: country,
+          markerCount: markerCount,
+          area: area,
+          areaPerMarker: areaPerMarker,
+          meanNearestDistance: meanNearestDistance,
+          moranI: moranI,
+        ));
+      }
+    });
+    return analyses;
   }
 
-  String _getNextCountry(String country) {
-    List<String> countries = countryCoordinates.keys.toList();
-    int currentIndex = countries.indexOf(country);
-    int nextIndex = (currentIndex + 1) % countries.length;
-    return countries[nextIndex];
+  // Restituisce la descrizione testuale per il Paese corrente
+  String _computeCountryAnalysis(String country) {
+    List<LatLng> points = countryCoordinates[country]!;
+    if (points.isEmpty) return "Nessun dato disponibile.";
+
+    double minLat = points.map((p) => p.latitude).reduce(math.min);
+    double maxLat = points.map((p) => p.latitude).reduce(math.max);
+    double minLng = points.map((p) => p.longitude).reduce(math.min);
+    double maxLng = points.map((p) => p.longitude).reduce(math.max);
+
+    double latDist = _calculateDistance(LatLng(minLat, minLng), LatLng(maxLat, minLng));
+    double lngDist = _calculateDistance(LatLng(minLat, minLng), LatLng(minLat, maxLng));
+    double area = latDist * lngDist; // in km²
+    int markerCount = points.length;
+    double density = (area > 0) ? markerCount / area : 0;
+
+    // Distanza media nearest neighbor
+    double totalNearestDistance = 0;
+    for (int i = 0; i < points.length; i++) {
+      double nearest = double.infinity;
+      for (int j = 0; j < points.length; j++) {
+        if (i == j) continue;
+        double d = _calculateDistance(points[i], points[j]);
+        if (d < nearest) nearest = d;
+      }
+      if (nearest == double.infinity) nearest = 0;
+      totalNearestDistance += nearest;
+    }
+    double meanNearestDistance = (points.isNotEmpty) ? totalNearestDistance / points.length : 0;
+    // Moran's I
+    double moranI = _computeCountryGridMoranI(points);
+
+    return "Punti: $markerCount\n"
+           "Area: ${area.toStringAsFixed(6)} km²\n"
+           "Densità: ${density.toStringAsExponential(6)} punti/km²\n"
+           "Nearest Neighbor: ${meanNearestDistance.toStringAsFixed(6)} km\n"
+           "Moran's I: ${moranI.toStringAsFixed(6)}";
   }
 
+  // Classifica di densità (già presente)
   void _showDensityRanking() {
     List<_CountryDensity> densities = countryCoordinates.entries.map((entry) {
       double minLat = entry.value.map((p) => p.latitude).reduce(math.min);
@@ -275,7 +479,7 @@ class _SpatialPageState extends State<SpatialPage> {
       double latDist = _calculateDistance(LatLng(minLat, minLng), LatLng(maxLat, minLng));
       double lngDist = _calculateDistance(LatLng(minLat, minLng), LatLng(minLat, maxLng));
       double area = latDist * lngDist;
-      double density = entry.value.length / area;
+      double density = (area > 0) ? entry.value.length / area : 0;
 
       return _CountryDensity(entry.key, density);
     }).toList();
@@ -319,10 +523,7 @@ class _SpatialPageState extends State<SpatialPage> {
                     ),
                     trailing: Text(
                       "Densità: ${cd.density.toStringAsExponential(6)} punti/km²",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black,
-                      ),
+                      style: TextStyle(fontSize: 12),
                     ),
                   ),
                 );
@@ -348,45 +549,23 @@ class _SpatialPageState extends State<SpatialPage> {
     );
   }
 
-  // Calcoli vari
-  String _computeCountryAnalysis(String country) {
-    List<LatLng> points = countryCoordinates[country]!;
-    if (points.isEmpty) return "Nessun dato disponibile.";
-    double minLat = points.map((p) => p.latitude).reduce(math.min);
-    double maxLat = points.map((p) => p.latitude).reduce(math.max);
-    double minLng = points.map((p) => p.longitude).reduce(math.min);
-    double maxLng = points.map((p) => p.longitude).reduce(math.max);
-
-    double latDist = _calculateDistance(LatLng(minLat, minLng), LatLng(maxLat, minLng));
-    double lngDist = _calculateDistance(LatLng(minLat, minLng), LatLng(minLat, maxLng));
-    double area = latDist * lngDist; // Area in km²
-    int markerCount = points.length;
-    double density = markerCount / area; // punti per km²
-
-    // Distanza media dal nearest neighbor
-    double totalNearestDistance = 0;
-    for (int i = 0; i < points.length; i++) {
-      double nearest = double.infinity;
-      for (int j = 0; j < points.length; j++) {
-        if (i == j) continue;
-        double d = _calculateDistance(points[i], points[j]);
-        if (d < nearest) nearest = d;
-      }
-      if (nearest == double.infinity) nearest = 0;
-      totalNearestDistance += nearest;
-    }
-    double meanNearestDistance = points.isNotEmpty ? totalNearestDistance / points.length : 0;
-
-    double moranI = computeCountryGridMoranI(points);
-
-    return "Punti: $markerCount\n"
-           "Area: ${area.toStringAsFixed(6)} km²\n"
-           "Densità: ${density.toStringAsExponential(6)} punti/km²\n"
-           "Nearest Neighbor: ${meanNearestDistance.toStringAsFixed(6)} km\n"
-           "Moran's I: ${moranI.toStringAsFixed(6)}";
+  // Calcoli di supporto
+  double _calculateDistance(LatLng p1, LatLng p2) {
+    const double earthRadius = 6371; // in km
+    double dLat = _toRadians(p2.latitude - p1.latitude);
+    double dLng = _toRadians(p2.longitude - p1.longitude);
+    double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_toRadians(p1.latitude)) *
+            math.cos(_toRadians(p2.latitude)) *
+            math.sin(dLng / 2) *
+            math.sin(dLng / 2);
+    double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return earthRadius * c;
   }
 
-  double computeCountryGridMoranI(List<LatLng> points) {
+  double _toRadians(double degree) => degree * math.pi / 180.0;
+
+  double _computeCountryGridMoranI(List<LatLng> points) {
     if (points.isEmpty) return 0.0;
     double minLat = points.map((p) => p.latitude).reduce(math.min);
     double maxLat = points.map((p) => p.latitude).reduce(math.max);
@@ -409,16 +588,17 @@ class _SpatialPageState extends State<SpatialPage> {
             p.latitude < cellMaxLat &&
             p.longitude >= cellMinLng &&
             p.longitude < cellMaxLng).length;
+
         gridValues.add(count.toDouble());
         double centroidLat = (cellMinLat + cellMaxLat) / 2;
         double centroidLng = (cellMinLng + cellMaxLng) / 2;
         gridCentroids.add(LatLng(centroidLat, centroidLng));
       }
     }
-    return computeMoranI(gridValues, gridCentroids);
+    return _computeMoranI(gridValues, gridCentroids);
   }
 
-  double computeMoranI(List<double> values, List<LatLng> centroids) {
+  double _computeMoranI(List<double> values, List<LatLng> centroids) {
     int n = values.length;
     double mean = values.reduce((a, b) => a + b) / n;
     List<List<double>> weights = List.generate(n, (_) => List.filled(n, 0.0));
@@ -445,25 +625,21 @@ class _SpatialPageState extends State<SpatialPage> {
         }
       }
     }
-
     return (n / S0) * (numerator / denominator);
   }
 
-  double _calculateDistance(LatLng p1, LatLng p2) {
-    const double earthRadius = 6371; // in km
-    double dLat = _toRadians(p2.latitude - p1.latitude);
-    double dLng = _toRadians(p2.longitude - p1.longitude);
-    double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(_toRadians(p1.latitude)) *
-            math.cos(_toRadians(p2.latitude)) *
-            math.sin(dLng / 2) *
-            math.sin(dLng / 2);
-    double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    return earthRadius * c;
+  String _getPreviousCountry(String country) {
+    List<String> countries = countryCoordinates.keys.toList();
+    int currentIndex = countries.indexOf(country);
+    int previousIndex = (currentIndex - 1 + countries.length) % countries.length;
+    return countries[previousIndex];
   }
 
-  double _toRadians(double degree) {
-    return degree * math.pi / 180.0;
+  String _getNextCountry(String country) {
+    List<String> countries = countryCoordinates.keys.toList();
+    int currentIndex = countries.indexOf(country);
+    int nextIndex = (currentIndex + 1) % countries.length;
+    return countries[nextIndex];
   }
 }
 
